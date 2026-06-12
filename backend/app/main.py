@@ -33,8 +33,14 @@ app.add_middleware(
 )
 
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     question: str = Field(min_length=1)
+    history: list[HistoryMessage] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
@@ -80,18 +86,35 @@ def chat(request: ChatRequest) -> ChatResponse:
 
         sql_generator = SQLGenerator()
 
-        sql = sql_generator.generate(request.question, schema_documents, hints)
+        try:
+            sql = sql_generator.generate(request.question, schema_documents, hints, request.history)
+        except Exception:
+            return ChatResponse(
+                sql="",
+                answer="I wasn't able to construct a valid query for that question. The data may not exist in this database, or the question may be outside what I can answer with the available schema.",
+                rows=[],
+            )
+
         try:
             rows = query_executor.execute(sql)
         except Exception as sql_error:
-            sql = sql_generator.repair(
-                request.question,
-                schema_documents,
-                hints,
-                sql,
-                str(sql_error),
-            )
-            rows = query_executor.execute(sql)
+            try:
+                sql = sql_generator.repair(
+                    request.question,
+                    schema_documents,
+                    hints,
+                    sql,
+                    str(sql_error),
+                    request.history,
+                )
+                rows = query_executor.execute(sql)
+            except Exception:
+                return ChatResponse(
+                    sql=sql,
+                    answer="I tried generating and repairing a query but couldn't produce one that works. The data may not exist in this database, or the question references something the schema doesn't support.",
+                    rows=[],
+                )
+
         answer = AnswerGenerator().generate(request.question, sql, rows)
 
         return ChatResponse(sql=sql, answer=answer, rows=rows)

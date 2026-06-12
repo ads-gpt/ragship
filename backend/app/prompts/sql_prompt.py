@@ -13,6 +13,7 @@ Rules:
 - For "made by" with a revenue-like number, identify the matching customer, store, product, or salesperson by aggregating sales rows.
 - AdventureWorks does not have a direct profit column. If asked for profit, compute estimated gross profit as revenue minus product standard cost when product/order detail data is available.
 - Revenue usually means sales.salesorderheader.subtotal or sales.salesorderdetail.linetotal, depending on grouping.
+- person.person has no name column. Build full names with firstname || ' ' || lastname.
 - When joining sales.salesorderheader to sales.salesorderdetail, do not SUM header-level subtotal or totaldue directly because it duplicates header values per line item.
 - For profit queries, use line-level revenue: SUM(sales.salesorderdetail.linetotal) - SUM(sales.salesorderdetail.orderqty * production.product.standardcost).
 """

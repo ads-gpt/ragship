@@ -52,12 +52,18 @@ class AnswerGenerator:
             ]
             label = _pluralize(_humanize_column(label_column), len(rows))
             metric = _humanize_column(value_column).lower()
-            suffix = "" if len(rows) <= 10 else f" I’m showing the first 10 of {len(rows)} rows."
+            suffix = "" if len(rows) <= 10 else f" Showing the first 10 of {len(rows)} rows."
             return (
                 f"The top {min(len(rows), 10)} {label} by {metric} are:\n"
                 + "\n".join(items)
                 + suffix
             )
+
+        if label_column:
+            values = [format_value(row.get(label_column), label_column) for row in rows[:10]]
+            label = _pluralize(_humanize_column(label_column), len(rows))
+            suffix = "" if len(rows) <= 10 else f" Showing the first 10 of {len(rows)} rows."
+            return f"Found {len(rows)} {label}: {_join_values(values)}.{suffix}"
 
         examples = [_describe_row(row, columns) for row in rows[:3]]
         suffix = "" if len(rows) <= 3 else f" There are {len(rows)} rows total in the table below."
@@ -107,9 +113,11 @@ def _pick_value_column(columns: list[str], rows: list[dict], label_column: str |
         if any(token in normalized for token in preferred) and _has_numeric_value(column, rows):
             return column
     for column in candidates:
+        if column.lower().endswith("id"):
+            continue
         if _has_numeric_value(column, rows):
             return column
-    return candidates[-1] if candidates else None
+    return None
 
 
 def format_value(value: Any, column: str | None = None) -> str:

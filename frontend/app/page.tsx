@@ -105,11 +105,16 @@ export default function Home() {
     setActiveTab("table");
     setCopiedSql(false);
 
+    const history = messages
+      .filter((m) => m.id !== "welcome" && !m.error && m.content !== "Running query...")
+      .slice(-10)
+      .map(({ role, content }) => ({ role, content }));
+
     try {
       const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
+        body: JSON.stringify({ question: trimmed, history }),
       });
 
       const payload = await response.json();
