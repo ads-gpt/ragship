@@ -47,7 +47,7 @@ def validate_read_only_sql(sql: str) -> str:
         raise ValueError(f"Blocked SQL keyword: {blocked}")
 
     _reject_undefined_helper_tables(cleaned)
-    return cleaned
+    return cleaned.rstrip().rstrip(";").rstrip()
 
 
 def _extract_statement(text: str) -> str:

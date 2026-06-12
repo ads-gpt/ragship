@@ -343,3 +343,11 @@ INFO:     Finished server process [26200]
 INFO:     Started server process [25664]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25664]
+INFO:     Started server process [5604]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
