@@ -1,25 +1,27 @@
 "use client";
 
+import type { FormEvent, ReactNode } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   Bot,
-  CheckCircle2,
-  Clock3,
+  ChevronLeft,
+  ChevronRight,
+  Clipboard,
   Database,
+  FileDown,
   Loader2,
-  MessageSquareText,
-  Play,
+  PanelRightClose,
+  PanelRightOpen,
   Rows3,
-  Sparkles,
+  SendHorizontal,
   Table2,
   TerminalSquare,
   UserRound,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -29,40 +31,69 @@ type ChatResponse = {
   rows: Record<string, unknown>[];
 };
 
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  error?: boolean;
+};
+
 type InspectorTab = "table" | "sql";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
-const examples = [
-  "Top 10 customers by revenue",
-  "Which products have the highest sales quantity?",
-  "Show sales by territory",
-];
+const defaultQuestion =
+  "For each sales territory and product category, calculate total revenue, total order quantity, average unit price, estimated gross profit, gross margin percentage, number of distinct customers, number of distinct orders, and each category's revenue rank within its territory. Only include orders from 2012 and 2013, exclude rows where product standard cost is missing, and show the top 3 product categories by revenue for each territory, ordered by territory revenue descending and category rank ascending.";
+
+const formatNumber = new Intl.NumberFormat("en-US");
 
 export default function Home() {
-  const [question, setQuestion] = useState(examples[0]);
-  const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(null);
+  const [question, setQuestion] = useState(defaultQuestion);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      content:
+        "Ask a database question. I will generate SQL, run it, and show the result here. The table and query live in the side panel when you need receipts.",
+    },
+  ]);
   const [result, setResult] = useState<ChatResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [durationMs, setDurationMs] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<InspectorTab>("table");
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const columns = useMemo(() => {
     if (!result?.rows.length) return [];
     return Object.keys(result.rows[0]);
   }, [result]);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
     const trimmed = question.trim();
     if (!trimmed || loading) return;
 
-    const startedAt = performance.now();
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: trimmed,
+    };
+    const pendingId = crypto.randomUUID();
+
+    setMessages((current) => [
+      ...current,
+      userMessage,
+      {
+        id: pendingId,
+        role: "assistant",
+        content: "Running query...",
+      },
+    ]);
+    setQuestion("");
     setLoading(true);
-    setError(null);
-    setSubmittedQuestion(trimmed);
     setActiveTab("table");
+    setCopiedSql(false);
 
     try {
       const response = await fetch(`${API_URL}/chat`, {
@@ -77,257 +108,275 @@ export default function Home() {
       }
 
       setResult(payload);
-      setDurationMs(Math.round(performance.now() - startedAt));
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === pendingId
+            ? {
+                ...message,
+                content: payload.answer || "Query completed, but the answer text came back empty. Very poetic. Not useful.",
+              }
+            : message,
+        ),
+      );
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown frontend nonsense occurred.";
       setResult(null);
-      setDurationMs(null);
-      setError(err instanceof Error ? err.message : "Unknown frontend nonsense occurred.");
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === pendingId
+            ? {
+                ...item,
+                content: message,
+                error: true,
+              }
+            : item,
+        ),
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  async function copySql() {
+    if (!result?.sql) return;
+    await navigator.clipboard.writeText(result.sql);
+    setCopiedSql(true);
+    window.setTimeout(() => setCopiedSql(false), 1600);
+  }
+
+  function exportCsv() {
+    if (!result?.rows.length) return;
+
+    const header = columns.join(",");
+    const body = result.rows
+      .map((row) =>
+        columns
+          .map((column) => {
+            const value = formatCell(row[column]);
+            return `"${value.replace(/"/g, '""')}"`;
+          })
+          .join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob([[header, body].join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "ragship-results.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-foreground">
-      <div className="mx-auto grid min-h-screen max-w-[1500px] grid-cols-1 gap-0 lg:grid-cols-[390px_1fr]">
-        <aside className="border-b border-border bg-white px-5 py-5 lg:border-b-0 lg:border-r">
-          <div className="flex h-full flex-col gap-5">
-            <header className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                    <Database className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-semibold tracking-normal text-ink">Ragship</h1>
-                    <p className="text-xs text-muted-foreground">AdventureWorks SQL analyst</p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  API
-                </Badge>
+    <main className="min-h-screen bg-app text-foreground">
+      <div
+        className={cn(
+          "grid min-h-screen transition-[grid-template-columns] duration-300",
+          panelOpen ? "lg:grid-cols-[minmax(0,1fr)_500px]" : "lg:grid-cols-[minmax(0,1fr)_56px]",
+        )}
+      >
+        <section className="flex min-h-screen min-w-0 flex-col">
+          <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-panel px-4 lg:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-ink text-white shadow-soft">
+                <Database className="h-4 w-4" />
               </div>
-              <div className="rounded-md border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                Backend <span className="font-medium text-foreground">{API_URL}</span>
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-semibold text-ink">Ragship</h1>
+                <p className="truncate text-xs text-muted-foreground">Conversational SQL analyst</p>
               </div>
-            </header>
-
-            <form onSubmit={submit} className="space-y-3">
-              <div className="space-y-2">
-                <label htmlFor="question" className="text-sm font-medium text-foreground">
-                  Ask a database question
-                </label>
-                <Textarea
-                  id="question"
-                  value={question}
-                  onChange={(event) => setQuestion(event.target.value)}
-                  className="min-h-40 resize-none bg-white text-[15px]"
-                  placeholder="Ask for revenue, products, customers, territories, or other AdventureWorks pain."
-                />
-              </div>
-              <Button type="submit" disabled={loading || !question.trim()} className="w-full">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                Run query
-              </Button>
-            </form>
-
-            <section className="space-y-2">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Useful prompts</div>
-              <div className="grid gap-2">
-                {examples.map((example) => (
-                  <Button
-                    key={example}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-auto justify-start whitespace-normal py-2 text-left"
-                    onClick={() => setQuestion(example)}
-                  >
-                    <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    {example}
-                  </Button>
-                ))}
-              </div>
-            </section>
-
-            <div className="mt-auto rounded-md border border-border bg-[#fbfcff] p-3 text-xs leading-5 text-muted-foreground">
-              Ask in plain English. Ragship generates SQL, executes it, and keeps the query visible so the magic trick has receipts.
             </div>
-          </div>
-        </aside>
-
-        <section className="flex min-w-0 flex-col">
-          <header className="flex flex-col gap-3 border-b border-border bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <MessageSquareText className="h-4 w-4 text-primary" />
-                Query session
-              </div>
-              <h2 className="mt-1 text-2xl font-semibold tracking-normal text-ink">Ask, answer, inspect.</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Metric label="Rows" value={result ? String(result.rows.length) : "-"} />
-              <Metric label="Latency" value={durationMs ? `${(durationMs / 1000).toFixed(1)}s` : "-"} icon={<Clock3 />} />
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setPanelOpen((open) => !open)}
+            >
+              {panelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+              {panelOpen ? "Hide panel" : "Show panel"}
+            </Button>
           </header>
 
-          <div className="grid flex-1 gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_560px]">
-            <div className="flex min-w-0 flex-col gap-4">
-              <ChatBubble
-                tone="user"
-                icon={<UserRound className="h-4 w-4" />}
-                title="You"
-                body={submittedQuestion ?? "Ask a question from the panel. The database is not going to interrogate itself, regrettably."}
-              />
-
-              <Card className="overflow-hidden">
-                <CardHeader className="border-b border-border bg-white">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
-                      </span>
-                      Ragship answer
-                    </CardTitle>
-                    {result && <Badge variant="secondary">{result.rows.length} rows</Badge>}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {error ? (
-                    <div className="m-5 rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                      <div className="mb-1 flex items-center gap-2 font-semibold">
-                        <AlertCircle className="h-4 w-4" />
-                        Request failed
-                      </div>
-                      <p>{error}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-5 p-5">
-                      <AnswerView answer={result?.answer} loading={loading} />
-                      {result && (
-                        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
-                          <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab("table")}>
-                            <Rows3 className="h-3.5 w-3.5" />
-                            View rows
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab("sql")}>
-                            <TerminalSquare className="h-3.5 w-3.5" />
-                            Inspect SQL
-                          </Button>
-                          <span className="text-xs text-muted-foreground">
-                            Answer first, receipts one click away. Novel concept, apparently.
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            <div className="mx-auto flex max-w-4xl flex-col gap-5">
+              {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} />
+              ))}
             </div>
+          </div>
 
-            <Card className="min-w-0 overflow-hidden">
-              <CardHeader className="border-b border-border bg-white pb-3">
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-base">Inspector</CardTitle>
-                  <Badge variant="outline">SQL transparent</Badge>
+          <div className="border-t border-border bg-app/95 px-4 py-4 backdrop-blur">
+            <form ref={formRef} onSubmit={submit} className="mx-auto max-w-4xl">
+              <div className="rounded-2xl border border-border bg-panel p-2 shadow-soft">
+                <Textarea
+                  value={question}
+                  onChange={(event) => setQuestion(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      formRef.current?.requestSubmit();
+                    }
+                  }}
+                  className="min-h-16 resize-none border-0 bg-transparent px-3 py-3 text-[15px] leading-6 shadow-none focus-visible:ring-0"
+                  placeholder="Ask a database question..."
+                />
+                <div className="flex items-center justify-between gap-3 px-2 pb-1">
+                  <span className="text-xs text-muted-foreground">Enter to send, Shift+Enter for a new line</span>
+                  <Button
+                    type="submit"
+                    disabled={loading || !question.trim()}
+                    className="h-9 rounded-xl bg-ink px-4 text-white hover:bg-neutral-800"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
+                    Send
+                  </Button>
                 </div>
-                <div className="mt-3 grid grid-cols-2 rounded-md bg-muted p-1">
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <aside
+          className={cn(
+            "min-w-0 border-l border-border bg-panel transition-transform duration-300",
+            panelOpen ? "block" : "hidden lg:block",
+          )}
+        >
+          {panelOpen ? (
+            <div className="flex h-screen min-w-0 flex-col">
+              <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-4">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-ink">Inspector</h2>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {result ? `${formatNumber.format(result.rows.length)} rows from latest answer` : "No result yet"}
+                  </p>
+                </div>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setPanelOpen(false)} title="Collapse panel">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="border-b border-border p-3">
+                <div className="grid grid-cols-2 rounded-lg bg-stone-100 p-1">
                   <TabButton active={activeTab === "table"} onClick={() => setActiveTab("table")}>
-                    Rows
+                    <Table2 className="h-3.5 w-3.5" />
+                    Table
                   </TabButton>
                   <TabButton active={activeTab === "sql"} onClick={() => setActiveTab("sql")}>
+                    <TerminalSquare className="h-3.5 w-3.5" />
                     SQL
                   </TabButton>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {activeTab === "table" && (
-                  <InspectorPane icon={<Table2 className="h-4 w-4" />} title="Returned rows">
-                    <ResultsTable rows={result?.rows ?? []} columns={columns} />
-                  </InspectorPane>
-                )}
+              </div>
 
-                {activeTab === "sql" && (
-                  <InspectorPane icon={<TerminalSquare className="h-4 w-4" />} title="Generated SQL">
-                    <pre className="max-h-[620px] min-h-52 overflow-auto rounded-md bg-slate-950 p-4 text-sm leading-6 text-slate-100">
-                      {result?.sql ?? "No SQL yet. Ask a question first; databases rarely volunteer."}
-                    </pre>
-                  </InspectorPane>
+              <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <Badge variant="outline" className="border-stone-200 bg-stone-50 text-stone-700">
+                  {activeTab === "table" ? "Rows" : "Query"}
+                </Badge>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" disabled={!result?.rows.length} onClick={exportCsv}>
+                    <FileDown className="h-3.5 w-3.5" />
+                    CSV
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" disabled={!result?.sql} onClick={copySql}>
+                    <Clipboard className="h-3.5 w-3.5" />
+                    {copiedSql ? "Copied" : "Copy SQL"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-hidden p-4">
+                {activeTab === "table" ? (
+                  <ResultsTable rows={result?.rows ?? []} columns={columns} />
+                ) : (
+                  <SqlBlock sql={result?.sql} />
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPanelOpen(true)}
+              className="flex h-screen w-full items-start justify-center border-l border-border bg-panel px-2 py-5 text-muted-foreground transition hover:bg-stone-50 hover:text-ink"
+              title="Expand inspector"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          )}
+        </aside>
       </div>
     </main>
   );
 }
 
-function Metric({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
-  return (
-    <div className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-[#fbfcff] px-3 text-sm">
-      {icon && <span className="text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold text-foreground">{value}</span>
-    </div>
-  );
-}
+function ChatMessage({ message }: { message: Message }) {
+  const isUser = message.role === "user";
 
-function ChatBubble({
-  icon,
-  title,
-  body,
-  tone,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-  tone: "user" | "assistant";
-}) {
   return (
-    <div className={cn("flex gap-3", tone === "user" && "justify-end")}>
-      {tone === "assistant" && <Avatar>{icon}</Avatar>}
+    <div className={cn("flex gap-3", isUser && "justify-end")}>
+      {!isUser && <Avatar error={message.error}>{message.error ? <AlertCircle /> : <Bot />}</Avatar>}
       <div
         className={cn(
-          "max-w-3xl rounded-lg border px-4 py-3 shadow-sm",
-          tone === "user" ? "border-primary/20 bg-primary text-primary-foreground" : "border-border bg-white",
+          "max-w-[min(760px,calc(100%-3rem))] rounded-2xl px-4 py-3 text-[15px] leading-7 shadow-soft",
+          isUser
+            ? "bg-ink text-white"
+            : message.error
+              ? "border border-rose-200 bg-rose-50 text-rose-950"
+              : "border border-border bg-panel text-stone-800",
         )}
       >
-        <div className={cn("mb-1 text-xs font-medium", tone === "user" ? "text-white/80" : "text-muted-foreground")}>
-          {title}
+        <div className={cn("mb-1 text-xs font-semibold", isUser ? "text-white/70" : "text-muted-foreground")}>
+          {isUser ? "You" : "Ragship"}
         </div>
-        <p className="text-sm leading-6">{body}</p>
+        {message.content === "Running query..." ? (
+          <span className="inline-flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-teal-700" />
+            Running query...
+          </span>
+        ) : (
+          <MessageText value={message.content} />
+        )}
       </div>
-      {tone === "user" && <Avatar>{icon}</Avatar>}
+      {isUser && <Avatar>{<UserRound />}</Avatar>}
     </div>
   );
 }
 
-function Avatar({ children }: { children: React.ReactNode }) {
+function Avatar({ children, error = false }: { children: ReactNode; error?: boolean }) {
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-white text-primary">
+    <div
+      className={cn(
+        "grid h-9 w-9 shrink-0 place-items-center rounded-lg border bg-white [&>svg]:h-4 [&>svg]:w-4",
+        error ? "border-rose-200 text-rose-700" : "border-border text-teal-700",
+      )}
+    >
       {children}
     </div>
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function MessageText({ value }: { value: string }) {
+  return (
+    <div className="space-y-3">
+      {stripMarkdown(value)
+        .split(/\n{2,}/)
+        .map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "h-8 rounded text-sm font-medium text-muted-foreground transition",
-        active && "bg-white text-foreground shadow-sm",
+        "inline-flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium text-muted-foreground transition",
+        active && "bg-white text-ink shadow-soft",
       )}
     >
       {children}
@@ -335,42 +384,26 @@ function TabButton({
   );
 }
 
-function InspectorPane({
-  icon,
-  title,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-3 p-5">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className="text-primary">{icon}</span>
-        {title}
-      </div>
-      {children}
-    </section>
-  );
-}
-
 function ResultsTable({ rows, columns }: { rows: Record<string, unknown>[]; columns: string[] }) {
   if (!rows.length) {
     return (
-      <div className="rounded-md border border-dashed border-border bg-[#fbfcff] p-4 text-sm text-muted-foreground">
-        No rows yet.
+      <div className="grid h-full min-h-64 place-items-center rounded-lg border border-dashed border-border bg-stone-50 p-6 text-center">
+        <div>
+          <Rows3 className="mx-auto h-8 w-8 text-stone-400" />
+          <p className="mt-3 text-sm font-semibold text-stone-700">No table yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Send a query first.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-h-[620px] overflow-auto rounded-md border border-border bg-white">
-      <table className="w-full min-w-[720px] border-collapse text-left text-sm">
-        <thead className="sticky top-0 bg-muted text-xs uppercase text-muted-foreground">
+    <div className="h-full overflow-auto rounded-lg border border-border bg-white">
+      <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+        <thead className="sticky top-0 z-10 bg-stone-100 text-[11px] uppercase text-stone-600 shadow-[0_1px_0_hsl(var(--border))]">
           <tr>
             {columns.map((column) => (
-              <th key={column} className="border-b border-border px-3 py-2 font-semibold">
+              <th key={column} className="whitespace-nowrap px-3 py-3 font-semibold">
                 {humanizeColumn(column)}
               </th>
             ))}
@@ -378,10 +411,16 @@ function ResultsTable({ rows, columns }: { rows: Record<string, unknown>[]; colu
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className="odd:bg-white even:bg-[#fbfcff]">
+            <tr key={rowIndex} className="border-b border-stone-100 hover:bg-teal-50/50">
               {columns.map((column) => (
-                <td key={column} className="border-b border-border px-3 py-2 align-top text-slate-800">
-                  {formatCell(row[column])}
+                <td
+                  key={column}
+                  className={cn(
+                    "max-w-[260px] px-3 py-2.5 align-top text-stone-800",
+                    typeof row[column] === "number" && "font-medium tabular-nums text-stone-950",
+                  )}
+                >
+                  <span className="line-clamp-3 break-words">{formatCell(row[column])}</span>
                 </td>
               ))}
             </tr>
@@ -392,6 +431,14 @@ function ResultsTable({ rows, columns }: { rows: Record<string, unknown>[]; colu
   );
 }
 
+function SqlBlock({ sql }: { sql?: string }) {
+  return (
+    <pre className="h-full min-h-64 overflow-auto rounded-lg bg-[#171717] p-4 text-sm leading-6 text-stone-100 shadow-inner">
+      {sql ?? "No SQL yet. Send a query first."}
+    </pre>
+  );
+}
+
 function formatCell(value: unknown) {
   if (value === null || value === undefined) return "";
   if (typeof value === "number") return value.toLocaleString();
@@ -399,84 +446,11 @@ function formatCell(value: unknown) {
   return String(value);
 }
 
-function AnswerView({
-  answer,
-  loading,
-  compact = false,
-}: {
-  answer?: string;
-  loading?: boolean;
-  compact?: boolean;
-}) {
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-        Generating SQL, running it, and attempting not to embarrass itself.
-      </div>
-    );
-  }
-
-  if (!answer) {
-    return <p className="text-sm text-muted-foreground">No answer yet. Which is refreshingly honest.</p>;
-  }
-
-  const normalized = stripMarkdown(answer);
-  const numberedItems = extractNumberedItems(normalized);
-
-  if (numberedItems.length) {
-    const intro = normalized.slice(0, numberedItems[0].index).replace(/:\s*$/, "").trim();
-    return (
-      <div className={cn("space-y-4", compact && "space-y-3")}>
-        {intro && <p className={cn("leading-7 text-foreground", compact && "text-sm leading-6")}>{intro}.</p>}
-        <ol className="grid gap-2">
-          {numberedItems.map((item) => (
-            <li
-              key={`${item.rank}-${item.label}`}
-              className="grid grid-cols-[2rem_1fr] items-start gap-2 rounded-md border border-border bg-white px-3 py-2"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-xs font-semibold text-primary">
-                {item.rank}
-              </span>
-              <span className="min-w-0">
-                <span className="font-medium text-foreground">{item.label}</span>
-                {item.value && <span className="ml-1 text-muted-foreground">{item.value}</span>}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("space-y-3 text-base leading-7 text-foreground", compact && "text-sm leading-6")}>
-      {normalized.split(/\n{2,}/).map((paragraph) => (
-        <p key={paragraph}>{paragraph}</p>
-      ))}
-    </div>
-  );
-}
-
 function stripMarkdown(value: string) {
   return value
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
     .trim();
-}
-
-function extractNumberedItems(value: string) {
-  const matches = [
-    ...value.matchAll(
-      /(?:^|\n|\s)(\d+)\.\s+(.+?)(?:\s+with\s+|:\s+)(\$?[\d,.]+(?:\.\d+)?|[^\n]+?)(?=\s+\d+\.|\n\d+\.|$)/g,
-    ),
-  ];
-  return matches.map((match) => ({
-    rank: match[1],
-    label: match[2].trim(),
-    value: match[3].trim(),
-    index: match.index ?? 0,
-  }));
 }
 
 function humanizeColumn(column: string) {
