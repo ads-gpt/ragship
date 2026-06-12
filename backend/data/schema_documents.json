@@ -1,0 +1,274 @@
+[
+  {
+    "table": "sales.countryregioncurrency",
+    "document": "Table: sales.countryregioncurrency\n\nColumns:\ncountryregioncode, currencycode, modifieddate\n\nPrimary Key:\ncountryregioncode, currencycode\n\nRelationships:\n['countryregioncode'] -> person.countryregion.['countryregioncode']\n['currencycode'] -> sales.currency.['currencycode']"
+  },
+  {
+    "table": "sales.currencyrate",
+    "document": "Table: sales.currencyrate\n\nColumns:\ncurrencyrateid, currencyratedate, fromcurrencycode, tocurrencycode, averagerate, endofdayrate, modifieddate\n\nPrimary Key:\ncurrencyrateid\n\nRelationships:\n['fromcurrencycode'] -> sales.currency.['currencycode']\n['tocurrencycode'] -> sales.currency.['currencycode']"
+  },
+  {
+    "table": "sales.customer",
+    "document": "Table: sales.customer\n\nColumns:\ncustomerid, personid, storeid, territoryid, accountnumber, rowguid, modifieddate\n\nPrimary Key:\ncustomerid\n\nRelationships:\n['personid'] -> person.person.['businessentityid']\n['territoryid'] -> sales.salesterritory.['territoryid']\n['storeid'] -> sales.store.['businessentityid']"
+  },
+  {
+    "table": "sales.creditcard",
+    "document": "Table: sales.creditcard\n\nColumns:\ncreditcardid, cardtype, cardnumber, expmonth, expyear, modifieddate\n\nPrimary Key:\ncreditcardid\n\nRelationships:"
+  },
+  {
+    "table": "sales.currency",
+    "document": "Table: sales.currency\n\nColumns:\ncurrencycode, name, modifieddate\n\nPrimary Key:\ncurrencycode\n\nRelationships:"
+  },
+  {
+    "table": "sales.personcreditcard",
+    "document": "Table: sales.personcreditcard\n\nColumns:\nbusinessentityid, creditcardid, modifieddate\n\nPrimary Key:\nbusinessentityid, creditcardid\n\nRelationships:\n['creditcardid'] -> sales.creditcard.['creditcardid']\n['businessentityid'] -> person.person.['businessentityid']"
+  },
+  {
+    "table": "sales.salesorderdetail",
+    "document": "Table: sales.salesorderdetail\n\nColumns:\nsalesorderid, salesorderdetailid, carriertrackingnumber, orderqty, productid, specialofferid, unitprice, unitpricediscount, linetotal, rowguid, modifieddate\n\nPrimary Key:\nsalesorderid, salesorderdetailid\n\nRelationships:\n['salesorderid'] -> sales.salesorderheader.['salesorderid']\n['specialofferid', 'productid'] -> sales.specialofferproduct.['specialofferid', 'productid']"
+  },
+  {
+    "table": "sales.specialofferproduct",
+    "document": "Table: sales.specialofferproduct\n\nColumns:\nspecialofferid, productid, rowguid, modifieddate\n\nPrimary Key:\nspecialofferid, productid\n\nRelationships:\n['productid'] -> production.product.['productid']\n['specialofferid'] -> sales.specialoffer.['specialofferid']"
+  },
+  {
+    "table": "sales.salespersonquotahistory",
+    "document": "Table: sales.salespersonquotahistory\n\nColumns:\nbusinessentityid, quotadate, salesquota, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid, quotadate\n\nRelationships:\n['businessentityid'] -> sales.salesperson.['businessentityid']"
+  },
+  {
+    "table": "sales.salestaxrate",
+    "document": "Table: sales.salestaxrate\n\nColumns:\nsalestaxrateid, stateprovinceid, taxtype, taxrate, name, rowguid, modifieddate\n\nPrimary Key:\nsalestaxrateid\n\nRelationships:\n['stateprovinceid'] -> person.stateprovince.['stateprovinceid']"
+  },
+  {
+    "table": "sales.salesperson",
+    "document": "Table: sales.salesperson\n\nColumns:\nbusinessentityid, territoryid, salesquota, bonus, commissionpct, salesytd, saleslastyear, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> humanresources.employee.['businessentityid']\n['territoryid'] -> sales.salesterritory.['territoryid']"
+  },
+  {
+    "table": "sales.salesterritoryhistory",
+    "document": "Table: sales.salesterritoryhistory\n\nColumns:\nbusinessentityid, territoryid, startdate, enddate, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid, startdate, territoryid\n\nRelationships:\n['businessentityid'] -> sales.salesperson.['businessentityid']\n['territoryid'] -> sales.salesterritory.['territoryid']"
+  },
+  {
+    "table": "sales.store",
+    "document": "Table: sales.store\n\nColumns:\nbusinessentityid, name, salespersonid, demographics, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> person.businessentity.['businessentityid']\n['salespersonid'] -> sales.salesperson.['businessentityid']"
+  },
+  {
+    "table": "sales.shoppingcartitem",
+    "document": "Table: sales.shoppingcartitem\n\nColumns:\nshoppingcartitemid, shoppingcartid, quantity, productid, datecreated, modifieddate\n\nPrimary Key:\nshoppingcartitemid\n\nRelationships:\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "sales.specialoffer",
+    "document": "Table: sales.specialoffer\n\nColumns:\nspecialofferid, description, discountpct, type, category, startdate, enddate, minqty, maxqty, rowguid, modifieddate\n\nPrimary Key:\nspecialofferid\n\nRelationships:"
+  },
+  {
+    "table": "sales.salesorderheader",
+    "document": "Table: sales.salesorderheader\n\nColumns:\nsalesorderid, revisionnumber, orderdate, duedate, shipdate, status, onlineorderflag, salesordernumber, purchaseordernumber, accountnumber, customerid, salespersonid, territoryid, billtoaddressid, shiptoaddressid, shipmethodid, creditcardid, creditcardapprovalcode, currencyrateid, subtotal, taxamt, freight, totaldue, comment, rowguid, modifieddate\n\nPrimary Key:\nsalesorderid\n\nRelationships:\n['billtoaddressid'] -> person.address.['addressid']\n['shiptoaddressid'] -> person.address.['addressid']\n['creditcardid'] -> sales.creditcard.['creditcardid']\n['currencyrateid'] -> sales.currencyrate.['currencyrateid']\n['customerid'] -> sales.customer.['customerid']\n['salespersonid'] -> sales.salesperson.['businessentityid']\n['territoryid'] -> sales.salesterritory.['territoryid']\n['shipmethodid'] -> purchasing.shipmethod.['shipmethodid']"
+  },
+  {
+    "table": "sales.salesorderheadersalesreason",
+    "document": "Table: sales.salesorderheadersalesreason\n\nColumns:\nsalesorderid, salesreasonid, modifieddate\n\nPrimary Key:\nsalesorderid, salesreasonid\n\nRelationships:\n['salesorderid'] -> sales.salesorderheader.['salesorderid']\n['salesreasonid'] -> sales.salesreason.['salesreasonid']"
+  },
+  {
+    "table": "sales.salesreason",
+    "document": "Table: sales.salesreason\n\nColumns:\nsalesreasonid, name, reasontype, modifieddate\n\nPrimary Key:\nsalesreasonid\n\nRelationships:"
+  },
+  {
+    "table": "sales.salesterritory",
+    "document": "Table: sales.salesterritory\n\nColumns:\nterritoryid, name, countryregioncode, group, salesytd, saleslastyear, costytd, costlastyear, rowguid, modifieddate\n\nPrimary Key:\nterritoryid\n\nRelationships:\n['countryregioncode'] -> person.countryregion.['countryregioncode']"
+  },
+  {
+    "table": "production.productmodelillustration",
+    "document": "Table: production.productmodelillustration\n\nColumns:\nproductmodelid, illustrationid, modifieddate\n\nPrimary Key:\nproductmodelid, illustrationid\n\nRelationships:\n['illustrationid'] -> production.illustration.['illustrationid']\n['productmodelid'] -> production.productmodel.['productmodelid']"
+  },
+  {
+    "table": "production.productmodelproductdescriptionculture",
+    "document": "Table: production.productmodelproductdescriptionculture\n\nColumns:\nproductmodelid, productdescriptionid, cultureid, modifieddate\n\nPrimary Key:\nproductmodelid, productdescriptionid, cultureid\n\nRelationships:\n['cultureid'] -> production.culture.['cultureid']\n['productdescriptionid'] -> production.productdescription.['productdescriptionid']\n['productmodelid'] -> production.productmodel.['productmodelid']"
+  },
+  {
+    "table": "production.productreview",
+    "document": "Table: production.productreview\n\nColumns:\nproductreviewid, productid, reviewername, reviewdate, emailaddress, rating, comments, modifieddate\n\nPrimary Key:\nproductreviewid\n\nRelationships:\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.productsubcategory",
+    "document": "Table: production.productsubcategory\n\nColumns:\nproductsubcategoryid, productcategoryid, name, rowguid, modifieddate\n\nPrimary Key:\nproductsubcategoryid\n\nRelationships:\n['productcategoryid'] -> production.productcategory.['productcategoryid']"
+  },
+  {
+    "table": "production.transactionhistory",
+    "document": "Table: production.transactionhistory\n\nColumns:\ntransactionid, productid, referenceorderid, referenceorderlineid, transactiondate, transactiontype, quantity, actualcost, modifieddate\n\nPrimary Key:\ntransactionid\n\nRelationships:\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.scrapreason",
+    "document": "Table: production.scrapreason\n\nColumns:\nscrapreasonid, name, modifieddate\n\nPrimary Key:\nscrapreasonid\n\nRelationships:"
+  },
+  {
+    "table": "production.productlistpricehistory",
+    "document": "Table: production.productlistpricehistory\n\nColumns:\nproductid, startdate, enddate, listprice, modifieddate\n\nPrimary Key:\nproductid, startdate\n\nRelationships:\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.transactionhistoryarchive",
+    "document": "Table: production.transactionhistoryarchive\n\nColumns:\ntransactionid, productid, referenceorderid, referenceorderlineid, transactiondate, transactiontype, quantity, actualcost, modifieddate\n\nPrimary Key:\ntransactionid\n\nRelationships:"
+  },
+  {
+    "table": "production.unitmeasure",
+    "document": "Table: production.unitmeasure\n\nColumns:\nunitmeasurecode, name, modifieddate\n\nPrimary Key:\nunitmeasurecode\n\nRelationships:"
+  },
+  {
+    "table": "production.productmodel",
+    "document": "Table: production.productmodel\n\nColumns:\nproductmodelid, name, catalogdescription, instructions, rowguid, modifieddate\n\nPrimary Key:\nproductmodelid\n\nRelationships:"
+  },
+  {
+    "table": "production.productphoto",
+    "document": "Table: production.productphoto\n\nColumns:\nproductphotoid, thumbnailphoto, thumbnailphotofilename, largephoto, largephotofilename, modifieddate\n\nPrimary Key:\nproductphotoid\n\nRelationships:"
+  },
+  {
+    "table": "production.document",
+    "document": "Table: production.document\n\nColumns:\ndocumentlevel, title, owner, folderflag, filename, fileextension, revision, changenumber, status, documentsummary, document, rowguid, modifieddate, documentnode\n\nPrimary Key:\ndocumentnode\n\nRelationships:\n['owner'] -> humanresources.employee.['businessentityid']"
+  },
+  {
+    "table": "production.location",
+    "document": "Table: production.location\n\nColumns:\nlocationid, name, costrate, availability, modifieddate\n\nPrimary Key:\nlocationid\n\nRelationships:"
+  },
+  {
+    "table": "production.culture",
+    "document": "Table: production.culture\n\nColumns:\ncultureid, name, modifieddate\n\nPrimary Key:\ncultureid\n\nRelationships:"
+  },
+  {
+    "table": "production.illustration",
+    "document": "Table: production.illustration\n\nColumns:\nillustrationid, diagram, modifieddate\n\nPrimary Key:\nillustrationid\n\nRelationships:"
+  },
+  {
+    "table": "production.billofmaterials",
+    "document": "Table: production.billofmaterials\n\nColumns:\nbillofmaterialsid, productassemblyid, componentid, startdate, enddate, unitmeasurecode, bomlevel, perassemblyqty, modifieddate\n\nPrimary Key:\nbillofmaterialsid\n\nRelationships:\n['componentid'] -> production.product.['productid']\n['productassemblyid'] -> production.product.['productid']\n['unitmeasurecode'] -> production.unitmeasure.['unitmeasurecode']"
+  },
+  {
+    "table": "production.productdocument",
+    "document": "Table: production.productdocument\n\nColumns:\nproductid, modifieddate, documentnode\n\nPrimary Key:\nproductid, documentnode\n\nRelationships:\n['documentnode'] -> production.document.['documentnode']\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.productinventory",
+    "document": "Table: production.productinventory\n\nColumns:\nproductid, locationid, shelf, bin, quantity, rowguid, modifieddate\n\nPrimary Key:\nproductid, locationid\n\nRelationships:\n['locationid'] -> production.location.['locationid']\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.productdescription",
+    "document": "Table: production.productdescription\n\nColumns:\nproductdescriptionid, description, rowguid, modifieddate\n\nPrimary Key:\nproductdescriptionid\n\nRelationships:"
+  },
+  {
+    "table": "production.productcosthistory",
+    "document": "Table: production.productcosthistory\n\nColumns:\nproductid, startdate, enddate, standardcost, modifieddate\n\nPrimary Key:\nproductid, startdate\n\nRelationships:\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "production.productcategory",
+    "document": "Table: production.productcategory\n\nColumns:\nproductcategoryid, name, rowguid, modifieddate\n\nPrimary Key:\nproductcategoryid\n\nRelationships:"
+  },
+  {
+    "table": "production.workorder",
+    "document": "Table: production.workorder\n\nColumns:\nworkorderid, productid, orderqty, stockedqty, scrappedqty, startdate, enddate, duedate, scrapreasonid, modifieddate\n\nPrimary Key:\nworkorderid\n\nRelationships:\n['productid'] -> production.product.['productid']\n['scrapreasonid'] -> production.scrapreason.['scrapreasonid']"
+  },
+  {
+    "table": "production.workorderrouting",
+    "document": "Table: production.workorderrouting\n\nColumns:\nworkorderid, productid, operationsequence, locationid, scheduledstartdate, scheduledenddate, actualstartdate, actualenddate, actualresourcehrs, plannedcost, actualcost, modifieddate\n\nPrimary Key:\nworkorderid, productid, operationsequence\n\nRelationships:\n['locationid'] -> production.location.['locationid']\n['workorderid'] -> production.workorder.['workorderid']"
+  },
+  {
+    "table": "production.product",
+    "document": "Table: production.product\n\nColumns:\nproductid, name, productnumber, makeflag, finishedgoodsflag, color, safetystocklevel, reorderpoint, standardcost, listprice, size, sizeunitmeasurecode, weightunitmeasurecode, weight, daystomanufacture, productline, class, style, productsubcategoryid, productmodelid, sellstartdate, sellenddate, discontinueddate, rowguid, modifieddate\n\nPrimary Key:\nproductid\n\nRelationships:\n['productmodelid'] -> production.productmodel.['productmodelid']\n['productsubcategoryid'] -> production.productsubcategory.['productsubcategoryid']\n['sizeunitmeasurecode'] -> production.unitmeasure.['unitmeasurecode']\n['weightunitmeasurecode'] -> production.unitmeasure.['unitmeasurecode']"
+  },
+  {
+    "table": "production.productproductphoto",
+    "document": "Table: production.productproductphoto\n\nColumns:\nproductid, productphotoid, primary, modifieddate\n\nPrimary Key:\nproductid, productphotoid\n\nRelationships:\n['productphotoid'] -> production.productphoto.['productphotoid']\n['productid'] -> production.product.['productid']"
+  },
+  {
+    "table": "person.stateprovince",
+    "document": "Table: person.stateprovince\n\nColumns:\nstateprovinceid, stateprovincecode, countryregioncode, isonlystateprovinceflag, name, territoryid, rowguid, modifieddate\n\nPrimary Key:\nstateprovinceid\n\nRelationships:\n['countryregioncode'] -> person.countryregion.['countryregioncode']\n['territoryid'] -> sales.salesterritory.['territoryid']"
+  },
+  {
+    "table": "person.phonenumbertype",
+    "document": "Table: person.phonenumbertype\n\nColumns:\nphonenumbertypeid, name, modifieddate\n\nPrimary Key:\nphonenumbertypeid\n\nRelationships:"
+  },
+  {
+    "table": "person.countryregion",
+    "document": "Table: person.countryregion\n\nColumns:\ncountryregioncode, name, modifieddate\n\nPrimary Key:\ncountryregioncode\n\nRelationships:"
+  },
+  {
+    "table": "person.addresstype",
+    "document": "Table: person.addresstype\n\nColumns:\naddresstypeid, name, rowguid, modifieddate\n\nPrimary Key:\naddresstypeid\n\nRelationships:"
+  },
+  {
+    "table": "person.businessentity",
+    "document": "Table: person.businessentity\n\nColumns:\nbusinessentityid, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:"
+  },
+  {
+    "table": "person.businessentityaddress",
+    "document": "Table: person.businessentityaddress\n\nColumns:\nbusinessentityid, addressid, addresstypeid, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid, addressid, addresstypeid\n\nRelationships:\n['addresstypeid'] -> person.addresstype.['addresstypeid']\n['addressid'] -> person.address.['addressid']\n['businessentityid'] -> person.businessentity.['businessentityid']"
+  },
+  {
+    "table": "person.businessentitycontact",
+    "document": "Table: person.businessentitycontact\n\nColumns:\nbusinessentityid, personid, contacttypeid, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid, personid, contacttypeid\n\nRelationships:\n['businessentityid'] -> person.businessentity.['businessentityid']\n['contacttypeid'] -> person.contacttype.['contacttypeid']\n['personid'] -> person.person.['businessentityid']"
+  },
+  {
+    "table": "person.emailaddress",
+    "document": "Table: person.emailaddress\n\nColumns:\nbusinessentityid, emailaddressid, emailaddress, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid, emailaddressid\n\nRelationships:\n['businessentityid'] -> person.person.['businessentityid']"
+  },
+  {
+    "table": "person.personphone",
+    "document": "Table: person.personphone\n\nColumns:\nbusinessentityid, phonenumber, phonenumbertypeid, modifieddate\n\nPrimary Key:\nbusinessentityid, phonenumber, phonenumbertypeid\n\nRelationships:\n['businessentityid'] -> person.person.['businessentityid']\n['phonenumbertypeid'] -> person.phonenumbertype.['phonenumbertypeid']"
+  },
+  {
+    "table": "person.password",
+    "document": "Table: person.password\n\nColumns:\nbusinessentityid, passwordhash, passwordsalt, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> person.person.['businessentityid']"
+  },
+  {
+    "table": "person.contacttype",
+    "document": "Table: person.contacttype\n\nColumns:\ncontacttypeid, name, modifieddate\n\nPrimary Key:\ncontacttypeid\n\nRelationships:"
+  },
+  {
+    "table": "person.person",
+    "document": "Table: person.person\n\nColumns:\nbusinessentityid, persontype, namestyle, title, firstname, middlename, lastname, suffix, emailpromotion, additionalcontactinfo, demographics, rowguid, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> person.businessentity.['businessentityid']"
+  },
+  {
+    "table": "person.address",
+    "document": "Table: person.address\n\nColumns:\naddressid, addressline1, addressline2, city, stateprovinceid, postalcode, spatiallocation, rowguid, modifieddate\n\nPrimary Key:\naddressid\n\nRelationships:\n['stateprovinceid'] -> person.stateprovince.['stateprovinceid']"
+  },
+  {
+    "table": "purchasing.productvendor",
+    "document": "Table: purchasing.productvendor\n\nColumns:\nproductid, businessentityid, averageleadtime, standardprice, lastreceiptcost, lastreceiptdate, minorderqty, maxorderqty, onorderqty, unitmeasurecode, modifieddate\n\nPrimary Key:\nproductid, businessentityid\n\nRelationships:\n['productid'] -> production.product.['productid']\n['unitmeasurecode'] -> production.unitmeasure.['unitmeasurecode']\n['businessentityid'] -> purchasing.vendor.['businessentityid']"
+  },
+  {
+    "table": "purchasing.vendor",
+    "document": "Table: purchasing.vendor\n\nColumns:\nbusinessentityid, accountnumber, name, creditrating, preferredvendorstatus, activeflag, purchasingwebserviceurl, modifieddate\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> person.businessentity.['businessentityid']"
+  },
+  {
+    "table": "purchasing.purchaseorderheader",
+    "document": "Table: purchasing.purchaseorderheader\n\nColumns:\npurchaseorderid, revisionnumber, status, employeeid, vendorid, shipmethodid, orderdate, shipdate, subtotal, taxamt, freight, modifieddate\n\nPrimary Key:\npurchaseorderid\n\nRelationships:\n['employeeid'] -> humanresources.employee.['businessentityid']\n['shipmethodid'] -> purchasing.shipmethod.['shipmethodid']\n['vendorid'] -> purchasing.vendor.['businessentityid']"
+  },
+  {
+    "table": "purchasing.shipmethod",
+    "document": "Table: purchasing.shipmethod\n\nColumns:\nshipmethodid, name, shipbase, shiprate, rowguid, modifieddate\n\nPrimary Key:\nshipmethodid\n\nRelationships:"
+  },
+  {
+    "table": "purchasing.purchaseorderdetail",
+    "document": "Table: purchasing.purchaseorderdetail\n\nColumns:\npurchaseorderid, purchaseorderdetailid, duedate, orderqty, productid, unitprice, receivedqty, rejectedqty, modifieddate\n\nPrimary Key:\npurchaseorderid, purchaseorderdetailid\n\nRelationships:\n['productid'] -> production.product.['productid']\n['purchaseorderid'] -> purchasing.purchaseorderheader.['purchaseorderid']"
+  },
+  {
+    "table": "humanresources.employee",
+    "document": "Table: humanresources.employee\n\nColumns:\nbusinessentityid, nationalidnumber, loginid, organizationlevel, jobtitle, birthdate, maritalstatus, gender, hiredate, salariedflag, vacationhours, sickleavehours, currentflag, rowguid, modifieddate, organizationnode\n\nPrimary Key:\nbusinessentityid\n\nRelationships:\n['businessentityid'] -> person.person.['businessentityid']"
+  },
+  {
+    "table": "humanresources.employeepayhistory",
+    "document": "Table: humanresources.employeepayhistory\n\nColumns:\nbusinessentityid, ratechangedate, rate, payfrequency, modifieddate\n\nPrimary Key:\nbusinessentityid, ratechangedate\n\nRelationships:\n['businessentityid'] -> humanresources.employee.['businessentityid']"
+  },
+  {
+    "table": "humanresources.department",
+    "document": "Table: humanresources.department\n\nColumns:\ndepartmentid, name, groupname, modifieddate\n\nPrimary Key:\ndepartmentid\n\nRelationships:"
+  },
+  {
+    "table": "humanresources.jobcandidate",
+    "document": "Table: humanresources.jobcandidate\n\nColumns:\njobcandidateid, businessentityid, resume, modifieddate\n\nPrimary Key:\njobcandidateid\n\nRelationships:\n['businessentityid'] -> humanresources.employee.['businessentityid']"
+  },
+  {
+    "table": "humanresources.shift",
+    "document": "Table: humanresources.shift\n\nColumns:\nshiftid, name, starttime, endtime, modifieddate\n\nPrimary Key:\nshiftid\n\nRelationships:"
+  },
+  {
+    "table": "humanresources.employeedepartmenthistory",
+    "document": "Table: humanresources.employeedepartmenthistory\n\nColumns:\nbusinessentityid, departmentid, shiftid, startdate, enddate, modifieddate\n\nPrimary Key:\nbusinessentityid, startdate, departmentid, shiftid\n\nRelationships:\n['departmentid'] -> humanresources.department.['departmentid']\n['businessentityid'] -> humanresources.employee.['businessentityid']\n['shiftid'] -> humanresources.shift.['shiftid']"
+  }
+]
