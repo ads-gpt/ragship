@@ -42,13 +42,10 @@ type InspectorTab = "table" | "sql";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
-const defaultQuestion =
-  "For each sales territory and product category, calculate total revenue, total order quantity, average unit price, estimated gross profit, gross margin percentage, number of distinct customers, number of distinct orders, and each category's revenue rank within its territory. Only include orders from 2012 and 2013, exclude rows where product standard cost is missing, and show the top 3 product categories by revenue for each territory, ordered by territory revenue descending and category rank ascending.";
-
 const formatNumber = new Intl.NumberFormat("en-US");
 
 export default function Home() {
-  const [question, setQuestion] = useState(defaultQuestion);
+  const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -63,6 +60,7 @@ export default function Home() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [copiedSql, setCopiedSql] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const columns = useMemo(() => {
     if (!result?.rows.length) return [];
@@ -134,7 +132,16 @@ export default function Home() {
       );
     } finally {
       setLoading(false);
+      window.requestAnimationFrame(() => resizeComposer());
     }
+  }
+
+  function resizeComposer() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = "0px";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`;
   }
 
   async function copySql() {
@@ -169,15 +176,15 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-app text-foreground">
+    <main className="h-screen overflow-hidden bg-app text-foreground">
       <div
         className={cn(
-          "grid min-h-screen transition-[grid-template-columns] duration-300",
+          "grid h-screen overflow-hidden transition-[grid-template-columns] duration-300",
           panelOpen ? "lg:grid-cols-[minmax(0,1fr)_500px]" : "lg:grid-cols-[minmax(0,1fr)_56px]",
         )}
       >
-        <section className="flex min-h-screen min-w-0 flex-col">
-          <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-panel px-4 lg:px-6">
+        <section className="flex h-screen min-w-0 flex-col overflow-hidden">
+          <header className="shrink-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-panel px-4 lg:px-6">
             <div className="flex min-w-0 items-center gap-3">
               <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-ink text-white shadow-soft">
                 <Database className="h-4 w-4" />
@@ -199,7 +206,7 @@ export default function Home() {
             </Button>
           </header>
 
-          <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
             <div className="mx-auto flex max-w-4xl flex-col gap-5">
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
@@ -207,32 +214,35 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="border-t border-border bg-app/95 px-4 py-4 backdrop-blur">
+          <div className="shrink-0 border-t border-border bg-app/95 px-4 py-3 backdrop-blur">
             <form ref={formRef} onSubmit={submit} className="mx-auto max-w-4xl">
-              <div className="rounded-2xl border border-border bg-panel p-2 shadow-soft">
+              <div className="flex items-end gap-2 rounded-[28px] border border-stone-800/10 bg-[#202020] px-4 py-2 shadow-[0_14px_40px_rgba(31,26,23,0.16)]">
                 <Textarea
+                  ref={textareaRef}
                   value={question}
-                  onChange={(event) => setQuestion(event.target.value)}
+                  rows={1}
+                  onChange={(event) => {
+                    setQuestion(event.target.value);
+                    window.requestAnimationFrame(() => resizeComposer());
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
                       formRef.current?.requestSubmit();
                     }
                   }}
-                  className="min-h-16 resize-none border-0 bg-transparent px-3 py-3 text-[15px] leading-6 shadow-none focus-visible:ring-0"
+                  className="max-h-[180px] min-h-11 flex-1 resize-none overflow-y-auto border-0 bg-transparent px-1 py-2.5 text-[16px] leading-6 text-white shadow-none outline-none placeholder:text-stone-400 focus-visible:ring-0"
                   placeholder="Ask a database question..."
                 />
-                <div className="flex items-center justify-between gap-3 px-2 pb-1">
-                  <span className="text-xs text-muted-foreground">Enter to send, Shift+Enter for a new line</span>
-                  <Button
-                    type="submit"
-                    disabled={loading || !question.trim()}
-                    className="h-9 rounded-xl bg-ink px-4 text-white hover:bg-neutral-800"
-                  >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
-                    Send
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || !question.trim()}
+                  size="icon"
+                  className="mb-0.5 h-10 w-10 shrink-0 rounded-full bg-white text-ink hover:bg-stone-200 disabled:bg-stone-500 disabled:text-stone-300"
+                  aria-label="Send query"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
+                </Button>
               </div>
             </form>
           </div>

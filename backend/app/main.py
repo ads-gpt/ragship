@@ -58,6 +58,10 @@ def health() -> dict[str, str]:
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:
     try:
+        conversational_answer = answer_conversational_message(request.question)
+        if conversational_answer:
+            return ChatResponse(sql="", answer=conversational_answer, rows=[])
+
         schema_answer = answer_schema_question(request.question)
         if schema_answer:
             sql, answer, rows = schema_answer
@@ -93,6 +97,28 @@ def chat(request: ChatRequest) -> ChatResponse:
         return ChatResponse(sql=sql, answer=answer, rows=rows)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+def answer_conversational_message(question: str) -> str | None:
+    normalized = question.strip().lower()
+    normalized = normalized.rstrip(".!?")
+
+    greetings = {
+        "hi",
+        "hello",
+        "hey",
+        "yo",
+        "hiya",
+        "sup",
+        "good morning",
+        "good afternoon",
+        "good evening",
+    }
+
+    if normalized in greetings:
+        return "Hi. Ask me a question about the AdventureWorks database, and I will generate the SQL and results."
+
+    return None
 
 
 def to_json_safe(value: Any) -> Any:
