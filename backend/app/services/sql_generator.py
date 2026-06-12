@@ -22,8 +22,11 @@ class SQLGenerator:
             ],
         }
         response = self.client.chat.completions.create(**request)
-        sql = response.choices[0].message.content or ""
-        return validate_read_only_sql(sql)
+        raw = response.choices[0].message.content or ""
+        try:
+            return validate_read_only_sql(raw)
+        except ValueError as exc:
+            return self.repair(question, schema_documents, hints, raw, str(exc))
 
     def repair(
         self,

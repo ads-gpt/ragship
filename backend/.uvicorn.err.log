@@ -126,3 +126,220 @@ asyncio.exceptions.CancelledError
 INFO:     Started server process [19096]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19096]
+INFO:     Started server process [19184]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for background tasks to complete. (CTRL+C to force quit)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19184]
+INFO:     Started server process [27104]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\query_templates.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27104]
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Started server process [12772]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\starlette\routing.py", line 700, in lifespan
+    await receive()
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:     Started server process [19724]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\query_templates.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19724]
+WARNING:  WatchFiles detected changes in 'backend\app\services\answer_generator.py'. Reloading...
+INFO:     Started server process [27316]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\starlette\routing.py", line 700, in lifespan
+    await receive()
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:     Started server process [12760]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in '.venv\Lib\site-packages\sqlglot\dialects\spark.py', '.venv\Lib\site-packages\sqlglot\dialects\postgres.py', '.venv\Lib\site-packages\sqlglot\dialects\__init__.py', '.venv\Lib\site-packages\sqlglot\optimizer\pushdown_projections.py', '.venv\Lib\site-packages\sqlglot\transforms.py', '.venv\Lib\site-packages\sqlglot\optimizer\annotate_types.py', '.venv\Lib\site-packages\sqlglot\executor\python.py', '.venv\Lib\site-packages\sqlglot\expressions.py', '.venv\Lib\site-packages\sqlglot\errors.py', '.venv\Lib\site-packages\sqlglot\dialects\starrocks.py', '.venv\Lib\site-packages\sqlglot\optimizer\qualify_columns.py', '.venv\Lib\site-packages\sqlglot\dialects\trino.py', '.venv\Lib\site-packages\sqlglot\optimizer\eliminate_ctes.py', '.venv\Lib\site-packages\sqlglot\optimizer\unnest_subqueries.py', '.venv\Lib\site-packages\sqlglot\_version.py', '.venv\Lib\site-packages\sqlglot\dialects\athena.py', '.venv\Lib\site-packages\sqlglot\executor\context.py', '.venv\Lib\site-packages\sqlglot\dialects\databricks.py', '.venv\Lib\site-packages\sqlglot\dialects\mysql.py', '.venv\Lib\site-packages\sqlglot\helper.py', '.venv\Lib\site-packages\sqlglot\optimizer\eliminate_joins.py', '.venv\Lib\site-packages\sqlglot\dialects\oracle.py', '.venv\Lib\site-packages\sqlglot\optimizer\isolate_table_selects.py', '.venv\Lib\site-packages\sqlglot\executor\__init__.py', '.venv\Lib\site-packages\sqlglot\diff.py', '.venv\Lib\site-packages\sqlglot\dialects\clickhouse.py', '.venv\Lib\site-packages\sqlglot\dialects\drill.py', '.venv\Lib\site-packages\sqlglot\serde.py', '.venv\Lib\site-packages\sqlglot\dialects\spark2.py', '.venv\Lib\site-packages\sqlglot\optimizer\scope.py', '.venv\Lib\site-packages\sqlglot\dialects\sqlite.py', '.venv\Lib\site-packages\sqlglot\planner.py', '.venv\Lib\site-packages\sqlglot\dialects\hive.py', '.venv\Lib\site-packages\sqlglot\executor\env.py', '.venv\Lib\site-packages\sqlglot\optimizer\__init__.py', '.venv\Lib\site-packages\sqlglot\lineage.py', '.venv\Lib\site-packages\sqlglot\optimizer\qualify_tables.py', '.venv\Lib\site-packages\sqlglot\optimizer\normalize_identifiers.py', '.venv\Lib\site-packages\sqlglot\dialects\teradata.py', '.venv\Lib\site-packages\sqlglot\schema.py', '.venv\Lib\site-packages\sqlglot\jsonpath.py', '.venv\Lib\site-packages\sqlglot\dialects\doris.py', '.venv\Lib\site-packages\sqlglot\optimizer\eliminate_subqueries.py', '.venv\Lib\site-packages\sqlglot\dialects\prql.py', '.venv\Lib\site-packages\sqlglot\dialects\redshift.py', '.venv\Lib\site-packages\sqlglot\optimizer\optimize_joins.py', '.venv\Lib\site-packages\sqlglot\optimizer\merge_subqueries.py', '.venv\Lib\site-packages\sqlglot\generator.py', '.venv\Lib\site-packages\sqlglot\dialects\materialize.py', '.venv\Lib\site-packages\sqlglot\__main__.py', '.venv\Lib\site-packages\sqlglot\dialects\tsql.py', '.venv\Lib\site-packages\sqlglot\tokens.py', '.venv\Lib\site-packages\sqlglot\__init__.py', '.venv\Lib\site-packages\sqlglot\dialects\bigquery.py', '.venv\Lib\site-packages\sqlglot\dialects\risingwave.py', '.venv\Lib\site-packages\sqlglot\dialects\presto.py', '.venv\Lib\site-packages\sqlglot\dialects\dune.py', '.venv\Lib\site-packages\sqlglot\optimizer\simplify.py', '.venv\Lib\site-packages\sqlglot\dialects\tableau.py', '.venv\Lib\site-packages\sqlglot\optimizer\qualify.py', '.venv\Lib\site-packages\sqlglot\trie.py', '.venv\Lib\site-packages\sqlglot\optimizer\optimizer.py', '.venv\Lib\site-packages\sqlglot\dialects\dialect.py', '.venv\Lib\site-packages\sqlglot\_typing.py', '.venv\Lib\site-packages\sqlglot\optimizer\pushdown_predicates.py', '.venv\Lib\site-packages\sqlglot\time.py', '.venv\Lib\site-packages\sqlglot\dialects\druid.py', '.venv\Lib\site-packages\sqlglot\optimizer\canonicalize.py', '.venv\Lib\site-packages\sqlglot\executor\table.py', '.venv\Lib\site-packages\sqlglot\parser.py', '.venv\Lib\site-packages\sqlglot\optimizer\normalize.py', '.venv\Lib\site-packages\sqlglot\dialects\snowflake.py', '.venv\Lib\site-packages\sqlglot\dialects\duckdb.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [12760]
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Started server process [2520]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\starlette\routing.py", line 700, in lifespan
+    await receive()
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:     Started server process [22980]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_generator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22980]
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Started server process [16272]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\starlette\routing.py", line 700, in lifespan
+    await receive()
+  File "E:\GitHub\ragship\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Apps\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:     Started server process [4768]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in '.venv\Lib\site-packages\sqlparse\keywords.py', '.venv\Lib\site-packages\sqlparse\engine\statement_splitter.py', '.venv\Lib\site-packages\sqlparse\utils.py', '.venv\Lib\site-packages\sqlparse\exceptions.py', '.venv\Lib\site-packages\sqlparse\engine\grouping.py', '.venv\Lib\site-packages\sqlparse\filters\tokens.py', '.venv\Lib\site-packages\sqlparse\filters\__init__.py', '.venv\Lib\site-packages\sqlparse\engine\__init__.py', '.venv\Lib\site-packages\sqlparse\filters\aligned_indent.py', '.venv\Lib\site-packages\sqlparse\formatter.py', '.venv\Lib\site-packages\sqlparse\engine\filter_stack.py', '.venv\Lib\site-packages\sqlparse\cli.py', '.venv\Lib\site-packages\sqlparse\__main__.py', '.venv\Lib\site-packages\sqlparse\filters\output.py', '.venv\Lib\site-packages\sqlparse\tokens.py', '.venv\Lib\site-packages\sqlparse\sql.py', '.venv\Lib\site-packages\sqlparse\__init__.py', '.venv\Lib\site-packages\sqlparse\filters\reindent.py', '.venv\Lib\site-packages\sqlparse\filters\right_margin.py', '.venv\Lib\site-packages\sqlparse\lexer.py', '.venv\Lib\site-packages\sqlparse\filters\others.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4768]
+INFO:     Started server process [28068]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28068]
+INFO:     Started server process [26200]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'backend\app\services\sql_validator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26200]
+INFO:     Started server process [25664]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

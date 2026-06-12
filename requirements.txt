@@ -9,4 +9,4 @@ posthog==3.7.4
 sentence-transformers==3.3.1
 pydantic==2.10.4
 pydantic-settings==2.7.0
-sqlglot==26.10.1
+sqlparse==0.5.5

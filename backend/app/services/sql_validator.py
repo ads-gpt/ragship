@@ -1,7 +1,18 @@
 import re
 
-import sqlglot
-from sqlglot import exp
+import sqlparse
+from sqlparse import tokens as T
+
+_BLOCKED = frozenset({"INSERT", "UPDATE", "DELETE", "TRUNCATE", "ALTER", "CREATE", "DROP"})
+
+_FROM_JOIN_TABLE = re.compile(
+    r"\b(?:FROM|JOIN)\s+"
+    r"(?!LATERAL\s|UNNEST\s|\()"
+    r"([A-Za-z_]\w*)\b(?!\s*\.\s*\w)",
+    re.IGNORECASE,
+)
+
+_CTE_NAME = re.compile(r"(?:WITH|,)\s+([A-Za-z_]\w*)\s+AS\s*\(", re.IGNORECASE)
 
 
 def _strip_comments(sql: str) -> str:
@@ -18,25 +29,25 @@ def validate_read_only_sql(sql: str) -> str:
     if not cleaned:
         raise ValueError("SQL is empty.")
 
-    try:
-        parsed_statements = sqlglot.parse(cleaned, read="postgres")
-    except sqlglot.errors.ParseError as exc:
-        raise ValueError(f"Invalid SQL: {exc}") from exc
+    if not re.search(r"\b(SELECT|WITH)\b", cleaned, re.IGNORECASE):
+        raise ValueError("No SQL query found in model response.")
 
-    statements = [statement for statement in parsed_statements if statement is not None]
+    statements = [s for s in sqlparse.parse(cleaned) if s.value.strip()]
     if len(statements) != 1:
         raise ValueError("Only one SQL statement is allowed.")
 
-    parsed = statements[0]
-    if not isinstance(parsed, (exp.Select, exp.Union)):
+    stmt = statements[0]
+    stmt_type = stmt.get_type()
+    # WITH…SELECT queries report type "SELECT"; plain None means unrecognised
+    if stmt_type not in (None, "SELECT"):
         raise ValueError("Only SELECT and WITH queries are allowed.")
 
-    blocked_expression = _find_blocked_expression(parsed)
-    if blocked_expression:
-        raise ValueError(f"Blocked SQL keyword: {blocked_expression}")
+    blocked = _find_blocked_keyword(stmt)
+    if blocked:
+        raise ValueError(f"Blocked SQL keyword: {blocked}")
 
-    _reject_undefined_helper_tables(parsed)
-    return parsed.sql(dialect="postgres")
+    _reject_undefined_helper_tables(cleaned)
+    return cleaned
 
 
 def _extract_statement(text: str) -> str:
@@ -54,47 +65,36 @@ def _extract_statement(text: str) -> str:
 
     line_matches = list(re.finditer(r"(?im)^\s*(WITH|SELECT)\b", text))
     if line_matches:
-        return text[line_matches[-1].start() :].strip()
+        return text[line_matches[-1].start():].strip()
 
     loose_matches = list(re.finditer(r"\b(WITH|SELECT)\b", text, flags=re.IGNORECASE))
     if loose_matches:
-        return text[loose_matches[-1].start() :].strip()
+        return text[loose_matches[-1].start():].strip()
 
     return text
 
 
-def _find_blocked_expression(statement: exp.Expression) -> str | None:
-    blocked_types = (
-        exp.Alter,
-        exp.Command,
-        exp.Create,
-        exp.Delete,
-        exp.Drop,
-        exp.Insert,
-        exp.Update,
-    )
-    for node in statement.walk():
-        if isinstance(node, blocked_types):
-            return node.key.upper()
+def _find_blocked_keyword(stmt) -> str | None:
+    for token in stmt.flatten():
+        if token.ttype in (T.Keyword.DDL, T.Keyword.DML):
+            upper = token.normalized.upper()
+            if upper in _BLOCKED:
+                return upper
     return None
 
 
-def _reject_undefined_helper_tables(statement: exp.Expression) -> None:
-    ctes = {
-        cte.alias.lower()
-        for cte in statement.find_all(exp.CTE)
-        if cte.alias
-    }
-    undefined_helpers = sorted(
+def _reject_undefined_helper_tables(sql: str) -> None:
+    ctes = {m.group(1).lower() for m in _CTE_NAME.finditer(sql)}
+    undefined = sorted(
         {
-            table.name.lower()
-            for table in statement.find_all(exp.Table)
-            if table.name and not table.db and table.name.lower() not in ctes
+            m.group(1).lower()
+            for m in _FROM_JOIN_TABLE.finditer(sql)
+            if m.group(1).lower() not in ctes
         }
     )
-    if undefined_helpers:
+    if undefined:
         raise ValueError(
             "Undefined helper table or CTE: "
-            + ", ".join(undefined_helpers)
+            + ", ".join(undefined)
             + ". Use real schema-qualified tables or define the helper in WITH."
         )

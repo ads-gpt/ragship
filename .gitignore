@@ -7,3 +7,4 @@ backend/data/chroma/
 
 .next/
 node_modules/
+*.log
