@@ -229,6 +229,9 @@ def _format_known_list(question: str, rows: list[dict], columns: list[str]) -> s
     normalized_question = question.lower()
 
     if "helmet" in normalized_question:
+        if re.search(r"\b(sale|sales|sold|revenue|quantity|orders?)\b", normalized_question):
+            return None
+
         name_column = next(
             (column for column in columns if column.lower() in {"helmet_type", "name", "product_name"}),
             None,

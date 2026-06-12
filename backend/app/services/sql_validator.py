@@ -1,15 +1,7 @@
 import re
 
-
-BLOCKED_KEYWORDS = {
-    "ALTER",
-    "CREATE",
-    "DELETE",
-    "DROP",
-    "INSERT",
-    "TRUNCATE",
-    "UPDATE",
-}
+import sqlglot
+from sqlglot import exp
 
 
 def _strip_comments(sql: str) -> str:
@@ -26,28 +18,35 @@ def validate_read_only_sql(sql: str) -> str:
     if not cleaned:
         raise ValueError("SQL is empty.")
 
-    statements = [part.strip() for part in cleaned.split(";") if part.strip()]
+    try:
+        parsed_statements = sqlglot.parse(cleaned, read="postgres")
+    except sqlglot.errors.ParseError as exc:
+        raise ValueError(f"Invalid SQL: {exc}") from exc
+
+    statements = [statement for statement in parsed_statements if statement is not None]
     if len(statements) != 1:
         raise ValueError("Only one SQL statement is allowed.")
 
-    statement = statements[0]
-    first_token = statement.split(maxsplit=1)[0].upper()
-    if first_token not in {"SELECT", "WITH"}:
+    parsed = statements[0]
+    if not isinstance(parsed, (exp.Select, exp.Union)):
         raise ValueError("Only SELECT and WITH queries are allowed.")
 
-    keyword_pattern = r"\b(" + "|".join(sorted(BLOCKED_KEYWORDS)) + r")\b"
-    match = re.search(keyword_pattern, statement, flags=re.IGNORECASE)
-    if match:
-        raise ValueError(f"Blocked SQL keyword: {match.group(1).upper()}")
+    blocked_expression = _find_blocked_expression(parsed)
+    if blocked_expression:
+        raise ValueError(f"Blocked SQL keyword: {blocked_expression}")
 
-    _reject_undefined_helper_tables(statement)
-    return statement
+    _reject_undefined_helper_tables(parsed)
+    return parsed.sql(dialect="postgres")
 
 
 def _extract_statement(text: str) -> str:
     if "</think>" in text:
         text = text.split("</think>", maxsplit=1)[1].strip()
     text = re.sub(r"<think>.*?</think>", " ", text, flags=re.IGNORECASE | re.DOTALL)
+    text = text.strip()
+
+    if re.match(r"(?is)^(WITH|SELECT)\b", text):
+        return text
 
     fenced = re.search(r"```(?:sql)?\s*(.*?)```", text, flags=re.IGNORECASE | re.DOTALL)
     if fenced:
@@ -64,24 +63,35 @@ def _extract_statement(text: str) -> str:
     return text
 
 
-def _reject_undefined_helper_tables(statement: str) -> None:
+def _find_blocked_expression(statement: exp.Expression) -> str | None:
+    blocked_types = (
+        exp.Alter,
+        exp.Command,
+        exp.Create,
+        exp.Delete,
+        exp.Drop,
+        exp.Insert,
+        exp.Update,
+    )
+    for node in statement.walk():
+        if isinstance(node, blocked_types):
+            return node.key.upper()
+    return None
+
+
+def _reject_undefined_helper_tables(statement: exp.Expression) -> None:
     ctes = {
-        match.group(1).lower()
-        for match in re.finditer(
-            r"(?:WITH|,)\s+([a-z_][a-z0-9_]*)\s+AS\s*\(",
-            statement,
-            flags=re.IGNORECASE,
-        )
+        cte.alias.lower()
+        for cte in statement.find_all(exp.CTE)
+        if cte.alias
     }
-    references = {
-        match.group(2).lower()
-        for match in re.finditer(
-            r"\b(FROM|JOIN)\s+((?!LATERAL\b)[a-z_][a-z0-9_]*)\b(?!\s*\.)",
-            statement,
-            flags=re.IGNORECASE,
-        )
-    }
-    undefined_helpers = sorted(reference for reference in references if reference not in ctes)
+    undefined_helpers = sorted(
+        {
+            table.name.lower()
+            for table in statement.find_all(exp.Table)
+            if table.name and not table.db and table.name.lower() not in ctes
+        }
+    )
     if undefined_helpers:
         raise ValueError(
             "Undefined helper table or CTE: "

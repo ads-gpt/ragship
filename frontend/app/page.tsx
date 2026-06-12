@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   Bot,
@@ -61,11 +61,23 @@ export default function Home() {
   const [copiedSql, setCopiedSql] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const columns = useMemo(() => {
     if (!result?.rows.length) return [];
     return Object.keys(result.rows[0]);
   }, [result]);
+
+  useEffect(() => {
+    const marker = messagesEndRef.current;
+    if (!marker) return;
+
+    const rect = marker.getBoundingClientRect();
+    const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+    if (!isVisible) {
+      marker.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages]);
 
   async function submit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -211,6 +223,7 @@ export default function Home() {
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
+              <div ref={messagesEndRef} aria-hidden="true" />
             </div>
           </div>
 
